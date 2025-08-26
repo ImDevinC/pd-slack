@@ -1,0 +1,40 @@
+name: Publish Docker Image
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*
+
+jobs:
+  publish-docker:
+    permissions:
+      packages: write
+      contents: read
+    uses: imdevinc/imdevinc/.github/workflows/shared-publish-docker.yaml@v1
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Get the tag
+        id: get_tag
+        run: echo ::set-output name=TAG::${GITHUB_REF##*/v*}
+      - name: Prepare Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.5
+      - name: Make release
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o out/pd-slack -ldflags "-s -w" ./cmd/main.go
+          cd out
+          tar -czf pd-slack.tar.gz pd-slack
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: false
+          name: ${{ steps.get_tag.outputs.TAG }}
+          tag: ${{ steps.get_tag.outputs.TAG }}
+          token: ${{ github.token }}
+          artifacts: out/pd-slack.tar.gz
