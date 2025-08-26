@@ -23,7 +23,7 @@ func (c *Client) GetOnCallUsersForSchedule(ctx context.Context, id string) ([]st
 	allUsers := []string{}
 	opts := pagerduty.ListOnCallUsersOptions{
 		Since: time.Now().UTC().Format(time.RFC3339),
-		Until: time.Now().UTC().Add(1 * time.Hour).Format(time.RFC3339),
+		Until: time.Now().UTC().Add(1 * time.Minute).Format(time.RFC3339), // Short window to get current on-call users
 	}
 	users, err := c.pd.ListOnCallUsersWithContext(ctx, id, opts)
 	if err != nil {

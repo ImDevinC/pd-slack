@@ -1,3 +1,5 @@
+slack_bot_token: # Can also be set as SLACK_BOT_TOKEN environment variable
+pagerduty_api_token: # Can also be set as PAGERDUTY_API_TOKEN environment variable
 slack_groups:
   - name: oncall
     pagerduty_schedule_ids:
