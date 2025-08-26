@@ -7,13 +7,9 @@ import (
 
 	"github.com/imdevinc/pd-slack/config"
 	"github.com/imdevinc/pd-slack/pagerduty"
+	"github.com/imdevinc/pd-slack/slack"
 	_ "github.com/joho/godotenv/autoload"
 )
-
-type app struct {
-	pagerdutyClient *pagerduty.Client
-	policyCache     map[string][]string
-}
 
 func main() {
 	cfg, err := config.Get("config.yaml")
@@ -23,36 +19,49 @@ func main() {
 	}
 	slog.Info("config loaded", "config", cfg)
 
-	pd := pagerduty.New(cfg.PagerdutyAPIToken)
-	a := app{
-		pagerdutyClient: pd,
-	}
-	if err := a.run(context.Background(), cfg); err != nil {
-		slog.Error("application error", "error", err)
-		os.Exit(1)
-	}
-}
+	pdClient := pagerduty.New(cfg.PagerdutyAPIToken)
+	slackClient := slack.New(cfg.SlackBotToken)
 
-func (a *app) run(ctx context.Context, cfg *config.Config) error {
-	slog.Info("starting application")
-	a.policyCache = make(map[string][]string)
+	policyCache := make(map[string][]string)
+	ctx := context.Background()
 
 	for _, group := range cfg.SlackGroups {
-		slog.Info("processing group", "group", group.Name)
+		slog.Info("getting oncall users for group", "group", group.Name)
 		oncallUsers := []string{}
 		for _, schedule := range group.PagerdutyScheduleIDs {
-			users, err := a.pagerdutyClient.GetOnCallUsersForSchedule(ctx, schedule)
+			if users, ok := policyCache[schedule]; ok {
+				oncallUsers = append(oncallUsers, users...)
+				continue
+			}
+			users, err := pdClient.GetOnCallUsersForSchedule(ctx, schedule)
 			if err != nil {
 				slog.Error("failed to get oncall users", "error", err, "schedule", schedule)
 				continue
 			}
 			oncallUsers = append(oncallUsers, users...)
-			a.policyCache[schedule] = users
+			policyCache[schedule] = users
 			slog.Info("fetched oncall users", "count", len(users), "schedule", schedule)
 		}
 		slog.Info("total oncall users for group", "group", group.Name, "count", len(oncallUsers))
-
+		groupID, err := slackClient.CheckForGroup(ctx, group.Name)
+		if err != nil {
+			slog.Error("failed to check for group", "error", err, "group", group.Name)
+			continue
+		}
+		if groupID == "" {
+			slog.Info("group not found, creating", "group", group.Name)
+			groupID, err = slackClient.CreateGroup(ctx, group.Name, group.Description)
+			if err != nil {
+				slog.Error("failed to create group", "error", err, "group", group.Name)
+				continue
+			}
+			slog.Info("created group", "group", group.Name, "id", groupID)
+		}
+		err = slackClient.UpdateUserGroupMembers(ctx, groupID, oncallUsers)
+		if err != nil {
+			slog.Error("failed to update group members", "error", err, "group", group.Name)
+			continue
+		}
+		slog.Info("updated group members", "group", group.Name, "count", len(oncallUsers))
 	}
-
-	return nil
 }

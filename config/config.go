@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	SlackToken        string       `yaml:"slack_token"`
+	SlackBotToken     string       `yaml:"slack_bot_token"`
 	PagerdutyAPIToken string       `yaml:"pagerduty_api_token"`
 	SlackGroups       []slackGroup `yaml:"slack_groups"`
 }
@@ -29,8 +29,8 @@ func Get(file string) (*Config, error) {
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config file: %w", err)
 	}
-	if token := os.Getenv("SLACK_TOKEN"); token != "" {
-		cfg.SlackToken = token
+	if token := os.Getenv("SLACK_BOT_TOKEN"); token != "" {
+		cfg.SlackBotToken = token
 	}
 	if token := os.Getenv("PAGERDUTY_API_TOKEN"); token != "" {
 		cfg.PagerdutyAPIToken = token

@@ -2,7 +2,6 @@ package pagerduty
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/PagerDuty/go-pagerduty"
@@ -19,6 +18,7 @@ func New(token string) *Client {
 	}
 }
 
+// GetOnCallUsersForSchedule retrieves the email addresses of users currently on call for the given schedule ID
 func (c *Client) GetOnCallUsersForSchedule(ctx context.Context, id string) ([]string, error) {
 	allUsers := []string{}
 	opts := pagerduty.ListOnCallUsersOptions{
@@ -27,7 +27,7 @@ func (c *Client) GetOnCallUsersForSchedule(ctx context.Context, id string) ([]st
 	}
 	users, err := c.pd.ListOnCallUsersWithContext(ctx, id, opts)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get oncall users: %w", err)
+		return nil, err
 	}
 	for _, user := range users {
 		allUsers = append(allUsers, user.Email)
