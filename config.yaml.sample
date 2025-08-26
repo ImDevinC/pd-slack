@@ -1,0 +1,9 @@
+slack_groups:
+  - name: oncall
+    pagerduty_schedule_ids:
+      - ABCD00E
+      - ABCD00F
+  - name: secondary-oncall
+    pagerduty_schedule_ids:
+      - ABCD00G
+
