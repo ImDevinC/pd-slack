@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
   issues: read
   pull-requests: read
 
@@ -45,6 +46,7 @@ jobs:
           tar -C dist -czf dist/pd-slack-linux-amd64.tar.gz pd-slack-linux-amd64
 
       - name: Commit binaries and update tags
+        id: tag
         if: steps.semver.outputs.version != ''
         env:
           VERSION: ${{ steps.semver.outputs.version }}
@@ -54,6 +56,10 @@ jobs:
           version="${VERSION#[vV]}"
           major="${version%%.*}"
           tag="v${version}"
+
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "major=${major}" >> "$GITHUB_OUTPUT"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -74,8 +80,36 @@ jobs:
         if: steps.semver.outputs.version != ''
         uses: ncipollo/release-action@v1
         with:
-          name: v${{ steps.semver.outputs.version }}
-          tag: v${{ steps.semver.outputs.version }}
+          name: ${{ steps.tag.outputs.tag }}
+          tag: ${{ steps.tag.outputs.tag }}
           body: ${{ steps.semver.outputs.release-notes }}
           token: ${{ github.token }}
           artifacts: dist/pd-slack-linux-amd64,dist/pd-slack-linux-arm64,dist/pd-slack-linux-amd64.tar.gz
+
+      - name: Set up QEMU
+        if: steps.semver.outputs.version != ''
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        if: steps.semver.outputs.version != ''
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: steps.semver.outputs.version != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        if: steps.semver.outputs.version != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/imdevinc/pd-slack:latest
+            ghcr.io/imdevinc/pd-slack:${{ steps.tag.outputs.version }}
+            ghcr.io/imdevinc/pd-slack:${{ steps.tag.outputs.major }}
