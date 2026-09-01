@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/imdevinc/pd-slack/config"
 	"github.com/imdevinc/pd-slack/pagerduty"
@@ -12,12 +14,16 @@ import (
 )
 
 func main() {
-	cfg, err := config.Get("config.yaml")
+	cfg, err := config.Get(resolveConfigPath())
 	if err != nil {
 		slog.Error("failed to load config", "error", err)
 		os.Exit(1)
 	}
-	slog.Info("config loaded", "config", cfg)
+	if err := validateConfig(cfg); err != nil {
+		slog.Error("invalid config", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("config loaded", "groups", cfg.GroupNames())
 
 	pdClient := pagerduty.New(cfg.PagerdutyAPIToken)
 	slackClient := slack.New(cfg.SlackBotToken)
@@ -64,4 +70,33 @@ func main() {
 		}
 		slog.Info("updated group members", "group", group.Name, "count", len(oncallUsers))
 	}
+}
+
+// resolveConfigPath returns the config file to load. When run as a GitHub
+// Actions container action, relative paths are resolved against the checked
+// out workspace so users can point the config-file input at files in their repo.
+func resolveConfigPath() string {
+	path := os.Getenv("INPUT_CONFIG_FILE")
+	if path == "" {
+		path = "config.yaml"
+	}
+	if !filepath.IsAbs(path) {
+		if workspace := os.Getenv("GITHUB_WORKSPACE"); workspace != "" {
+			return filepath.Join(workspace, path)
+		}
+	}
+	return path
+}
+
+func validateConfig(cfg *config.Config) error {
+	if cfg.SlackBotToken == "" {
+		return fmt.Errorf("slack bot token is required (set via the slack-bot-token input, the SLACK_BOT_TOKEN environment variable, or the config file)")
+	}
+	if cfg.PagerdutyAPIToken == "" {
+		return fmt.Errorf("pagerduty API token is required (set via the pagerduty-api-token input, the PAGERDUTY_API_TOKEN environment variable, or the config file)")
+	}
+	if len(cfg.SlackGroups) == 0 {
+		return fmt.Errorf("at least one slack group is required (set via the config file or the slack-group-name and pagerduty-schedule-ids inputs)")
+	}
+	return nil
 }

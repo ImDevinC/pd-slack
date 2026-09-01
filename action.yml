@@ -1,0 +1,46 @@
+name: 'PD Slack Sync'
+description: 'Sync PagerDuty on-call users to a Slack user group.'
+author: 'ImDevinC'
+
+branding:
+  icon: 'users'
+  color: 'purple'
+
+inputs:
+  slack-bot-token:
+    description: >-
+      Slack Bot User OAuth token. Requires the usergroups:read and
+      usergroups:write scopes. Prefer passing this via a secret.
+    required: true
+  pagerduty-api-token:
+    description: >-
+      PagerDuty API token. Prefer passing this via a secret.
+    required: true
+  config-file:
+    description: >-
+      Path to a YAML config file for syncing multiple groups. When set, this
+      takes precedence over the single-group inputs below. Paths are resolved
+      relative to the checkout directory.
+    required: false
+    default: ''
+  slack-group-name:
+    description: >-
+      Name of the Slack user group to sync. Ignored when config-file is set.
+    required: false
+    default: ''
+  slack-group-description:
+    description: >-
+      Description for the Slack user group when it needs to be created. Ignored
+      when config-file is set.
+    required: false
+    default: ''
+  pagerduty-schedule-ids:
+    description: >-
+      Comma-separated list of PagerDuty schedule IDs whose on-call users are
+      synced to the group. Ignored when config-file is set.
+    required: false
+    default: ''
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
