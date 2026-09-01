@@ -12,7 +12,10 @@ While there are other tools like this, I couldn't find one that worked how I wan
 
 ## GitHub Action
 
-The easiest way to use this is as a GitHub Action. Add a workflow to your repository:
+The easiest way to use this is as a GitHub Action. The action downloads a
+precompiled release binary (it does not build the application when run), so
+there is nothing to compile and no Docker image to pull. Add a workflow to your
+repository:
 
 ```yaml
 name: Sync on-call

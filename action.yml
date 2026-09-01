@@ -42,5 +42,41 @@ inputs:
     default: ''
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: 'composite'
+  steps:
+    - name: Download precompiled binary
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        repo="${{ github.action_repository }}"
+        case "${{ runner.arch }}" in
+          ARM64|arm64)
+            asset="pd-slack-arm64"
+            ;;
+          *)
+            asset="pd-slack"
+            ;;
+        esac
+
+        version="${{ github.action_ref }}"
+        version="${version#refs/tags/}"
+
+        base_url="https://github.com/${repo}/releases"
+        binary="${RUNNER_TEMP}/pd-slack"
+
+        # Prefer the exact release matching the ref. Float tags (e.g. v0),
+        # branches, and commit SHAs do not have their own release, so fall
+        # back to the latest release for those.
+        if [[ "${version}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && curl -fsSL "${base_url}/download/${version}/${asset}" -o "${binary}" 2>/dev/null; then
+          echo "Downloaded pd-slack ${asset} from release ${version}"
+        else
+          curl -fsSL "${base_url}/latest/download/${asset}" -o "${binary}"
+          echo "Downloaded pd-slack ${asset} from the latest release (ref: ${version})"
+        fi
+
+        chmod +x "${binary}"
+        echo "pd-slack-binary=${binary}" >> "${GITHUB_ENV}"
+    - name: Run pd-slack
+      shell: bash
+      run: "${PD_SLACK_BINARY}"
