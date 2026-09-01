@@ -1,0 +1,80 @@
+name: Release Action
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.5'
+
+      - name: Bump version and tag
+        id: semver
+        uses: jefflinse/pr-semver-bump@v1.7.1
+        with:
+          mode: bump
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          minor-label: minor
+          major-label: major
+          patch-label: patch
+          with-v: true
+
+      - name: Build static binaries
+        if: steps.semver.outputs.version != ''
+        run: |
+          set -euo pipefail
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o dist/pd-slack-linux-amd64 ./cmd/main.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -ldflags "-s -w" -o dist/pd-slack-linux-arm64 ./cmd/main.go
+          tar -C dist -czf dist/pd-slack-linux-amd64.tar.gz pd-slack-linux-amd64
+
+      - name: Commit binaries and update tags
+        if: steps.semver.outputs.version != ''
+        env:
+          VERSION: ${{ steps.semver.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          version="${VERSION#[vV]}"
+          major="${version%%.*}"
+          tag="v${version}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add dist/
+          if ! git diff --cached --quiet; then
+            git commit -m "Build static binaries for ${tag}"
+          fi
+
+          git tag -fa "${tag}" -m "${tag}"
+          git tag -fa "v${major}" -m "Update v${major} tag"
+
+          git push origin main
+          git push origin "${tag}" "v${major}" --force
+
+      - name: Create GitHub release
+        if: steps.semver.outputs.version != ''
+        uses: ncipollo/release-action@v1
+        with:
+          name: v${{ steps.semver.outputs.version }}
+          tag: v${{ steps.semver.outputs.version }}
+          body: ${{ steps.semver.outputs.release-notes }}
+          token: ${{ github.token }}
+          artifacts: dist/pd-slack-linux-amd64,dist/pd-slack-linux-arm64,dist/pd-slack-linux-amd64.tar.gz

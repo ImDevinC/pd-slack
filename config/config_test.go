@@ -80,11 +80,11 @@ func TestGetEnvironmentTokensOverrideFile(t *testing.T) {
 }
 
 func TestGetSingleGroupInputs(t *testing.T) {
-	t.Setenv("INPUT_SLACK_BOT_TOKEN", "input-token")
-	t.Setenv("INPUT_PAGERDUTY_API_TOKEN", "input-pd-token")
-	t.Setenv("INPUT_SLACK_GROUP_NAME", "oncall")
-	t.Setenv("INPUT_SLACK_GROUP_DESCRIPTION", "Level 1 oncall")
-	t.Setenv("INPUT_PAGERDUTY_SCHEDULE_IDS", "ABCD00E, ABCD00F, ")
+	t.Setenv("INPUT_SLACK-BOT-TOKEN", "input-token")
+	t.Setenv("INPUT_PAGERDUTY-API-TOKEN", "input-pd-token")
+	t.Setenv("INPUT_SLACK-GROUP-NAME", "oncall")
+	t.Setenv("INPUT_SLACK-GROUP-DESCRIPTION", "Level 1 oncall")
+	t.Setenv("INPUT_PAGERDUTY-SCHEDULE-IDS", "ABCD00E, ABCD00F, ")
 
 	cfg, err := Get(filepath.Join(t.TempDir(), "missing.yaml"))
 	if err != nil {
@@ -116,9 +116,9 @@ func TestGetSingleGroupInputs(t *testing.T) {
 }
 
 func TestGetConfigFileInputTakesPrecedenceOverSingleGroup(t *testing.T) {
-	t.Setenv("INPUT_CONFIG_FILE", "config.yaml")
-	t.Setenv("INPUT_SLACK_GROUP_NAME", "ignored")
-	t.Setenv("INPUT_PAGERDUTY_SCHEDULE_IDS", "ABCD00E")
+	t.Setenv("INPUT_CONFIG-FILE", "config.yaml")
+	t.Setenv("INPUT_SLACK-GROUP-NAME", "ignored")
+	t.Setenv("INPUT_PAGERDUTY-SCHEDULE-IDS", "ABCD00E")
 
 	cfg, err := Get(filepath.Join(t.TempDir(), "missing.yaml"))
 	if err != nil {
@@ -130,8 +130,8 @@ func TestGetConfigFileInputTakesPrecedenceOverSingleGroup(t *testing.T) {
 }
 
 func TestGetPartialSingleGroupInputsAreIgnored(t *testing.T) {
-	t.Setenv("INPUT_SLACK_GROUP_NAME", "oncall")
-	// INPUT_PAGERDUTY_SCHEDULE_IDS intentionally left unset.
+	t.Setenv("INPUT_SLACK-GROUP-NAME", "oncall")
+	// INPUT_PAGERDUTY-SCHEDULE-IDS intentionally left unset.
 
 	cfg, err := Get(filepath.Join(t.TempDir(), "missing.yaml"))
 	if err != nil {

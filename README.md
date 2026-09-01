@@ -12,10 +12,11 @@ While there are other tools like this, I couldn't find one that worked how I wan
 
 ## GitHub Action
 
-The easiest way to use this is as a GitHub Action. The action downloads a
-precompiled release binary (it does not build the application when run), so
-there is nothing to compile and no Docker image to pull. Add a workflow to your
-repository:
+The easiest way to use this is as a GitHub Action. The action ships prebuilt
+static binaries checked into the repository and runs them through a small
+Node.js shim, so there is nothing to compile, download, or pull when the action
+runs. Supported runner platforms are `linux/amd64` and `linux/arm64`. Add a
+workflow to your repository:
 
 ```yaml
 name: Sync on-call
@@ -35,7 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Sync on-call to Slack
-        uses: imdevinc/pd-slack@v1
+        uses: imdevinc/pd-slack@v0
         with:
           slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
           pagerduty-api-token: ${{ secrets.PAGERDUTY_API_TOKEN }}
@@ -59,7 +60,7 @@ For more than one Slack group, commit a config file and reference it:
 ```yaml
 steps:
   - name: Sync on-call to Slack
-    uses: imdevinc/pd-slack@v1
+    uses: imdevinc/pd-slack@v0
     with:
       slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
       pagerduty-api-token: ${{ secrets.PAGERDUTY_API_TOKEN }}
