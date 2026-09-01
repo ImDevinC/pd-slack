@@ -1,0 +1,19 @@
+display_information:
+  name: PD Schedule Sync
+  description: Syncs Pagerduty schedules to Slack Groups
+  background_color: "#4a154b"
+features:
+  bot_user:
+    display_name: PD Schedule Sync
+    always_online: false
+oauth_config:
+  scopes:
+    bot:
+      - usergroups:read
+      - usergroups:write
+  pkce_enabled: false
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false
+  is_mcp_enabled: false
