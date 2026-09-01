@@ -2,6 +2,8 @@ ARG GO_VERSION=1.24
 
 FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:${GO_VERSION} AS builder
 
+ARG TARGETARCH
+
 WORKDIR /src
 
 COPY ./go.mod ./go.sum ./
@@ -12,7 +14,7 @@ COPY ./ ./
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -o /pd-slack ./cmd/main.go
 
-FROM --platform=${BUILDPLATFORM:-linux/amd64} gcr.io/distroless/static
+FROM gcr.io/distroless/static
 
 USER nonroot:nonroot
 
