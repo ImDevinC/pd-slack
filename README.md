@@ -103,6 +103,19 @@ The tokens can also be supplied through the `SLACK_BOT_TOKEN` and `PAGERDUTY_API
 
 ## Docker
 
+A prebuilt image is published to GHCR on every release, tagged with the
+release version (e.g. `0.3.0`), the major version (e.g. `0`), and `latest`:
+
+```sh
+docker run --rm \
+  -e SLACK_BOT_TOKEN=xoxb-... \
+  -e PAGERDUTY_API_TOKEN=pdus-... \
+  -v "$(pwd)/config.yaml:/config.yaml" \
+  ghcr.io/imdevinc/pd-slack:latest
+```
+
+You can also build the image locally:
+
 ```sh
 docker build -t pd-slack .
 docker run --rm \
