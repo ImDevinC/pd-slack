@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	envConfigFile            = "INPUT_CONFIG_FILE"
-	envSlackGroupName        = "INPUT_SLACK_GROUP_NAME"
-	envSlackGroupDescription = "INPUT_SLACK_GROUP_DESCRIPTION"
-	envPagerdutyScheduleIDs  = "INPUT_PAGERDUTY_SCHEDULE_IDS"
+	envConfigFile            = "INPUT_CONFIG-FILE"
+	envSlackGroupName        = "INPUT_SLACK-GROUP-NAME"
+	envSlackGroupDescription = "INPUT_SLACK-GROUP-DESCRIPTION"
+	envPagerdutyScheduleIDs  = "INPUT_PAGERDUTY-SCHEDULE-IDS"
 )
 
 type Config struct {
@@ -61,13 +61,13 @@ func applyEnvironment(cfg *Config) {
 	if token := os.Getenv("SLACK_BOT_TOKEN"); token != "" {
 		cfg.SlackBotToken = token
 	}
-	if token := os.Getenv("INPUT_SLACK_BOT_TOKEN"); token != "" {
+	if token := os.Getenv("INPUT_SLACK-BOT-TOKEN"); token != "" {
 		cfg.SlackBotToken = token
 	}
 	if token := os.Getenv("PAGERDUTY_API_TOKEN"); token != "" {
 		cfg.PagerdutyAPIToken = token
 	}
-	if token := os.Getenv("INPUT_PAGERDUTY_API_TOKEN"); token != "" {
+	if token := os.Getenv("INPUT_PAGERDUTY-API-TOKEN"); token != "" {
 		cfg.PagerdutyAPIToken = token
 	}
 

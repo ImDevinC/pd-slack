@@ -73,10 +73,10 @@ func main() {
 }
 
 // resolveConfigPath returns the config file to load. When run as a GitHub
-// Actions container action, relative paths are resolved against the checked
-// out workspace so users can point the config-file input at files in their repo.
+// Action, relative paths are resolved against the checked out workspace so
+// users can point the config-file input at files in their repo.
 func resolveConfigPath() string {
-	path := os.Getenv("INPUT_CONFIG_FILE")
+	path := os.Getenv("INPUT_CONFIG-FILE")
 	if path == "" {
 		path = "config.yaml"
 	}
