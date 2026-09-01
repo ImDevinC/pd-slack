@@ -18,4 +18,7 @@ USER nonroot:nonroot
 
 COPY --from=builder --chown=nonroot:nonroot /pd-slack /pd-slack
 
+LABEL org.opencontainers.image.source=https://github.com/imdevinc/pd-slack
+LABEL org.opencontainers.image.description="Sync PagerDuty on-call users to a Slack user group."
+
 ENTRYPOINT [ "/pd-slack" ]
