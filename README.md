@@ -48,7 +48,7 @@ jobs:
 
 | Input | Required | Description |
 | --- | --- | --- |
-| `slack-bot-token` | Yes | Slack Bot User OAuth token with `usergroups:read` and `usergroups:write` scopes. Store it as a secret. |
+| `slack-bot-token` | Yes | Slack Bot User OAuth token with `usergroups:read`, `usergroups:write`, and `users:read.email` scopes. Store it as a secret. |
 | `pagerduty-api-token` | Yes | PagerDuty API token. Store it as a secret. |
 | `config-file` | No | Path to a YAML config file (see [below](#configuration)) for syncing multiple groups. When set, this takes precedence over the single-group inputs. Relative paths are resolved against the checkout directory. |
 | `slack-group-name` | No | Name of the Slack user group to sync. Ignored when `config-file` is set. |
@@ -75,6 +75,7 @@ Copy `config.yaml.sample` to `config.yaml` and provide the details.
 - The Slack bot needs the following permissions:
   - `usergroups:read`
   - `usergroups:write`
+  - `users:read.email`
 
 ```yaml
 slack_bot_token: xoxb-...

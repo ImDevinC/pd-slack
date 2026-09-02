@@ -10,7 +10,8 @@ inputs:
   slack-bot-token:
     description: >-
       Slack Bot User OAuth token. Requires the usergroups:read and
-      usergroups:write scopes. Prefer passing this via a secret.
+      usergroups:write and users:read.email scopes. Prefer passing this via a
+      secret.
     required: true
   pagerduty-api-token:
     description: >-
