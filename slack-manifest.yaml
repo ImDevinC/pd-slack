@@ -9,6 +9,8 @@ features:
 oauth_config:
   scopes:
     bot:
+      - users:read.email
+      - users:read
       - usergroups:read
       - usergroups:write
   pkce_enabled: false
