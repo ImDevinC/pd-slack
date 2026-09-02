@@ -30,6 +30,7 @@ func main() {
 
 	policyCache := make(map[string][]string)
 	ctx := context.Background()
+	failed := false
 
 	for _, group := range cfg.SlackGroups {
 		slog.Info("getting oncall users for group", "group", group.Name)
@@ -42,6 +43,7 @@ func main() {
 			users, err := pdClient.GetOnCallUsersForSchedule(ctx, schedule)
 			if err != nil {
 				slog.Error("failed to get oncall users", "error", err, "schedule", schedule)
+				failed = true
 				continue
 			}
 			oncallUsers = append(oncallUsers, users...)
@@ -52,6 +54,7 @@ func main() {
 		groupID, err := slackClient.CheckForGroup(ctx, group.Name)
 		if err != nil {
 			slog.Error("failed to check for group", "error", err, "group", group.Name)
+			failed = true
 			continue
 		}
 		if groupID == "" {
@@ -59,6 +62,7 @@ func main() {
 			groupID, err = slackClient.CreateGroup(ctx, group.Name, group.Description)
 			if err != nil {
 				slog.Error("failed to create group", "error", err, "group", group.Name)
+				failed = true
 				continue
 			}
 			slog.Info("created group", "group", group.Name, "id", groupID)
@@ -66,9 +70,14 @@ func main() {
 		err = slackClient.UpdateUserGroupMembers(ctx, groupID, oncallUsers)
 		if err != nil {
 			slog.Error("failed to update group members", "error", err, "group", group.Name)
+			failed = true
 			continue
 		}
 		slog.Info("updated group members", "group", group.Name, "count", len(oncallUsers))
+	}
+
+	if failed {
+		os.Exit(1)
 	}
 }
 
